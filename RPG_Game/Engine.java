@@ -3,7 +3,7 @@ class Event
 	private static int[][] e = loadE();
 	public static int[][] loadE()
 	{
-		int[][] e1 = {{6,5,8},{4},{5,5,5},{6},{7},{0,2},{8}};
+		int[][] e1 = {{6,7,8},{4},{5,5,5},{6},{7},{0,2},{8}};
 		return e1;
 	}
 	public static int[] getEvent(int i)

@@ -11,7 +11,7 @@ public abstract class Fighter {
 	protected String Name; 
 	protected boolean Down;
 	protected double WaitTime;
-	protected int alliance;
+	protected boolean alliance;
     public Fighter(String n,int[] s, ArrayList<Integer> m, ArrayList<Integer> in)
     {
         Stats = s;
@@ -20,10 +20,10 @@ public abstract class Fighter {
 		Name = n;
 		Down = false;
     }
-    abstract void choose(String[] p,String c,int b); 
-    public void setMove(String[] p,String c,int b)
+    abstract void choose(String[] p,String c); 
+    public void setMove(String[] p,String c)
     {
-    	choose(p,c,b);
+    	choose(p,c);
     	setWait();
     }
     public static ArrayList<Integer> getInventory()
@@ -131,11 +131,11 @@ public abstract class Fighter {
     {
     	WaitTime -= inc;
     }
-    public int getAll()
+    public boolean getAll()
     {
     	return alliance;
     }
-    public void setAll(int newAll)
+    public void setAll(boolean newAll)
     {
     	alliance = newAll;
     }

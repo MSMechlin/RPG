@@ -1,5 +1,6 @@
 
 import java.text.DecimalFormat;
+import java.util.Random;
 import java.util.Scanner;
 public class Party {
 	private DecimalFormat df;
@@ -7,10 +8,13 @@ public class Party {
 	private String ans;
 	private static int Cursor;
 	private static int Remaining;
+	private static int Allies;
+	private static int Enemies;
 	private int[] BaseParty;
 	private static int[] Order;
-    private Fighter[] fighters; 
+    private static Fighter[] fighters; 
     private boolean winner;
+    private static Random Rand = new Random();
     public Party(int[] a)
     {      
        df = new DecimalFormat("##.##");
@@ -20,11 +24,13 @@ public class Party {
     {      
     	Remaining = BaseParty.length+Opponents.length;
     	fighters = new Fighter[Remaining];
-    	
+    	Allies = BaseParty.length;
+    	Enemies = Opponents.length;
+    	System.out.println(Enemies);
     	for(int i = 0;i<BaseParty.length;i++)
     	{
     		fighters[i] =  FightClub.getFighter(i);
-    		fighters[i].setAll(0);
+    		fighters[i].setAll(true);
     	}
     	System.out.print("You are confronted by ");
     		
@@ -39,7 +45,7 @@ public class Party {
     			  System.out.print(" and his goons!");
     		  }
     		  fighters[i+BaseParty.length] = FightClub.getFighter(Opponents[i]);
-    		  fighters[i+BaseParty.length].setAll(1);
+    		  fighters[i+BaseParty.length].setAll(false);
     	  }
     }
     //Once fighter runs out of HP
@@ -74,7 +80,7 @@ public class Party {
     	//Everyone decides their move in the beginning	
     	for(Cursor = Remaining-1;Cursor>-1;Cursor--)
     	{
-    		fighters[Cursor].setMove(Targets(),"\n",Remaining);
+    		fighters[Cursor].setMove(Targets(),"\n");
     	}
     	Shuffle();
     	Cursor = 0;
@@ -95,7 +101,6 @@ public class Party {
     			}
     		}
     	}
-    	WaitListPrint();
     }
     //After fighter's wait time changes
     public void Replace(int index)
@@ -110,12 +115,10 @@ public class Party {
     	//Find first fighter after cursor to have higher wait time
     	while(i<Cursor+Remaining&&!found)
     	{
-    		System.out.println(fighters[Order[index]].getWait()+" < "+fighters[Order[i%Remaining]].getWait());
     		if((!found)&&fighters[Order[index]].getWait()<fighters[Order[i%Remaining]].getWait())
     		{
     			
     			newPos = i;
-    			System.out.println(newPos);
     			found = true;
     		}
     		if(Cursor!=index&&i==Cursor+Remaining-1)
@@ -161,13 +164,12 @@ public class Party {
       {	  
     	  while(Cursor<Remaining&&!End)
     	  {
-    		  System.out.println("Look, this is how much we will subtract this turn-> "+fighters[Order[Cursor]].getWait());
     		  allWait(fighters[Order[Cursor]].getWait());
     		  Act();
     		  End = Tally();
     		  if(!End)
     		  {  
-    			  fighters[Order[Cursor]].setMove(Targets(),showCharge(),BaseParty.length);
+    			  fighters[Order[Cursor]].setMove(Targets(),showCharge());
     		  	  Replace(Cursor);
     		  	  Cursor++;
     		  }		
@@ -185,6 +187,24 @@ public class Party {
     		return -1;
     	}
     	return Order[newTar%Remaining];
+    }
+    public static int setTarget(boolean all)
+    {
+    	int i = -1;
+    	int search = 0;
+    	
+    	if(all)
+    		search = Rand.nextInt(Allies);
+    	else
+    		search = Rand.nextInt(Enemies);
+    	while(search>=0)
+    	{
+    		i++;
+    		if(fighters[i].getAll() == all&&!fighters[i].getDown())
+    			search--;
+    	}
+    	System.out.println(i);
+    	return i;
     }
     public String[] Targets()
     {
@@ -204,38 +224,33 @@ public class Party {
     }
     public boolean Tally()
     {
-      boolean a = false;
-      boolean b = false;
+      boolean end = false;
       for(int i = 0;i< Remaining;i++)
       {
         if(fighters[Order[i]].getStat(0) <= 0)
         {
         	//check to see who has run out of HP and remove them
         	System.out.println(fighters[Order[i]].getName() + " hit the floor!");  
+        	if(fighters[Order[i]].getAll())
+        		Allies--;
+        	else
+        		Enemies--;
         	Unload(i);
         } 
       }
-      for(int i=0;i<Remaining;i++)
-      {         
-        if(fighters[Order[i]] instanceof Ally)
-        {
-          a = true;
-        }
-        else if(fighters[Order[i]] instanceof Enemy)
-        {
-          b = true;
-        }
-      }
-      if(!a)
-      {
-    	  winner = false;
-      }
-      else if(!b)
+      if(Enemies == 0)
       {
     	  winner = true;
+    	  end = true;
       }
+      if(Allies == 0)
+      {
+    	  winner = false;
+    	  end = true;
+      }
+      
       //if one side has run out of fighters tally returns false and the battle ends
-      return!(a&&b);
+      return end;
     }
     public void allWait(double increment)
     {
@@ -268,38 +283,46 @@ public class Party {
       //Flavor text describing what happens to their target
       if(!fighters[target].getDown()||ins[0][0]!=0)
       {
-    	  if(ins[0][0] == 0)
-          {
-        	  System.out.println(fighters[target].getName() + fighters[user].getNextAtt().getScript());
-          }
-          if(ins[0][0] == 1)
-          {
-        	  System.out.println(fighters[user].getName() + fighters[user].getNextAtt().getScript());
-          }
-          if(ins[0][0] == 2)
-          {	  
-        	  System.out.println("All opponents"+fighters[user].getNextAtt().getScript());
-          }
+    	  switch(ins[0][0])
+    	  {
+    	  	case 0:
+    	  		System.out.println(fighters[target].getName() + fighters[user].getNextAtt().getScript());
+    	  		break;
+    	  	case 1:
+    	  		System.out.println(fighters[user].getName() + fighters[user].getNextAtt().getScript());
+    	  		break;
+    	  	case 2:	
+    	  		System.out.println("All opponents"+fighters[user].getNextAtt().getScript());
+    	  		break;
+    	  	case 3:
+    	  		System.out.println("All allies"+fighters[user].getNextAtt().getScript());
+    	  }
     	  for(int i=0;i<ins.length;i++)
-    	  {          
-    		  if(ins[i][0] == 0)
+    	  {   
+    		  switch(ins[i][0])
     		  {
+    		  case 0:
     			  //[target].affect() calculates and announces the effects of the user's move on the target
-    			  a[ins[i][5]] += fighters[target].affect(Utility.getOps(ins[i][1]).calculate((ins[i][2]),fighters[user].getStat(ins[i][3]),fighters[target].getStat(ins[i][4])),ins[i][5]);
-    		  } 
-    		  if(ins[i][0] == 1)
-    		  {
+    			  fighters[target].affect(Utility.getOps(ins[i][1]).calculate((ins[i][2]),fighters[user].getStat(ins[i][3]),fighters[target].getStat(ins[i][4])),ins[i][5]);
+    			  break;
+    		  case 1:
     				//this line invokes the collateral affects of a move on the user	
-    			  fighters[user].affect(Utility.getOps(ins[i][1]).calculate(ins[i][2],a[ins[i][5]],fighters[user].getStat(ins[i][3])),ins[i][5]);
-    		  }  
-    		  if(ins[i][0] == 2)
-    		  {
-    			  System.out.println("here we go this is epic");
+    			  fighters[user].affect(Utility.getOps(ins[i][1]).calculate((ins[i][2]),fighters[user].getStat(ins[i][3]),fighters[target].getStat(ins[i][4])),ins[i][5]);
+    			  break;
+    		  case 2:
     			 for(int j = 0;j<Remaining;j++)
     			 {
     				 if(fighters[Order[j]].getAll()!=fighters[user].getAll())
-    					 fighters[Order[j]].affect(Utility.getOps(ins[i][1]).calculate(ins[i][2],a[ins[i][5]],fighters[Order[j]].getStat(ins[i][3])),ins[i][5]);
+    					 fighters[Order[j]].affect(Utility.getOps(ins[i][1]).calculate((ins[i][2]),fighters[user].getStat(ins[i][3]),fighters[target].getStat(ins[i][4])),ins[i][5]);
     			 }
+    			 break;
+    		  case 3:
+    			 for(int j = 0;j<Remaining;j++)
+     			 {
+     				 if(fighters[Order[j]].getAll()==fighters[user].getAll())
+     					 fighters[Order[j]].affect(Utility.getOps(ins[i][1]).calculate((ins[i][2]),fighters[user].getStat(ins[i][3]),fighters[target].getStat(ins[i][4])),ins[i][5]);
+     			 }
+    			  
     		  }
     		  if(ins[i][5] == 4&&ins[i][0] == 0)
           		setWait = true;

@@ -9,7 +9,7 @@ public class Ally extends Fighter{
 	    {
 	        super(n,s,m,in);           
 	    }    
-	    public void choose(String[] p,String a,int b)
+	    public void choose(String[] p,String a)
 	    {
 	      int menu = 0;	
 	      int ans;
@@ -40,7 +40,7 @@ public class Ally extends Fighter{
 	                		while(!moveChosen&&!back)	
 	                		{	
 	                			ans = scan.nextInt();
-	                			if(ans < 0||ans>=Moveset.size())
+	                			if(ans < 0||ans>Moveset.size())
 	                			{
 	                				System.out.println("Invalid choice");
 	                			}
@@ -87,7 +87,6 @@ public class Ally extends Fighter{
 	    	  } 
 	    	  if(!back&&(MovePool.getMove(newMove).getIn(0,0)!=0))
 	    	  {
-	    		  System.out.println("hello2");
 	    		  target = 0; 
 	    		  back = true;
 	    		  submit = true;
